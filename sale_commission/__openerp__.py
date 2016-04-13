@@ -6,7 +6,7 @@
 
 {
     'name': 'Sales commissions',
-    'version': '8.0.2.4.0',
+    'version': '8.0.2.4.1',
     'author': 'Pexego, '
               'Savoire-faire linux, '
               'Avanzosc, '
@@ -32,9 +32,12 @@
         "Pedro M. Baeza <pedro.baeza@serviciosbaeza.com>",
         "Oihane Crucelaegui <oihanecruce@gmail.com>",
         "Iván Todorovich <ivan.todorovich@gmail.com",
+        "Javier Colmenero <javier@comunitea.com>"
     ],
     "data": [
         "security/ir.model.access.csv",
+        "security/commission_security.xml",
+        "views/partner_agent_view.xml",
         "views/product_template_view.xml",
         "views/res_partner_view.xml",
         "views/sale_commission_view.xml",
