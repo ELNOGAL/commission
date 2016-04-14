@@ -35,6 +35,7 @@
         "Javier Colmenero <javier@comunitea.com>"
     ],
     "data": [
+        "security/commission_security.xml",
         "security/ir.model.access.csv",
         "security/commission_security.xml",
         "views/partner_agent_view.xml",
