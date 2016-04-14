@@ -37,7 +37,6 @@
     "data": [
         "security/commission_security.xml",
         "security/ir.model.access.csv",
-        "security/commission_security.xml",
         "views/partner_agent_view.xml",
         "views/product_template_view.xml",
         "views/res_partner_view.xml",
