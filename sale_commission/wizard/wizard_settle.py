@@ -60,6 +60,7 @@ class SaleCommissionMakeSettle(models.TransientModel):
                 [('agent', '=', True)])
         date_to = fields.Date.from_string(self.date_to)
         for agent in self.agents:
+            import ipdb; ipdb.set_trace()
             date_to_agent = self._get_period_start(agent, date_to)
             # Get non settled invoices
             agent_lines = agent_line_obj.search(
@@ -67,6 +68,7 @@ class SaleCommissionMakeSettle(models.TransientModel):
                  ('agent', '=', agent.id),
                  ('settled', '=', False)], order='invoice_date')
             for company in agent_lines.mapped('invoice_line.company_id'):
+                settlement = False
                 for agent_lines_company in agent_lines.filtered(
                         lambda r: r.invoice_line.company_id == company):
                     if agent_lines_company:
@@ -89,12 +91,13 @@ class SaleCommissionMakeSettle(models.TransientModel):
                                                                sett_from) -
                                     timedelta(days=1))
                                 sett_from = fields.Date.to_string(sett_from)
-                                settlement = settlement_obj.create(
-                                    {'agent': agent.id,
-                                     'date_from': sett_from,
-                                     'date_to': sett_to,
-                                     'company_id': company.id})
-                                settlement_ids.append(settlement.id)
+                                if not settlement:
+                                    settlement = settlement_obj.create(
+                                        {'agent': agent.id,
+                                         'date_from': sett_from,
+                                         'date_to': sett_to,
+                                         'company_id': company.id})
+                                    settlement_ids.append(settlement.id)
                             settlement_line_obj.create(
                                 {'settlement': settlement.id,
                                  'agent_line': [(6, 0,
