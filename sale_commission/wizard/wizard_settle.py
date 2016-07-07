@@ -51,11 +51,9 @@ class SaleCommissionMakeSettle(models.TransientModel):
 
     @api.multi
     def action_settle(self):
-        # import ipdb; ipdb.set_trace()
         self.ensure_one()
         agent_line_obj = self.env['account.invoice.line.agent']
         settlement_obj = self.env['sale.commission.settlement']
-        # settlement_line_obj = self.env['sale.commission.settlement.line']
         settlement_ids = []
         if not self.agents:
             self.agents = self.env['res.partner'].search(
@@ -100,25 +98,16 @@ class SaleCommissionMakeSettle(models.TransientModel):
                                          'date_to': sett_to,
                                          'company_id': company.id})
                                     settlement_ids.append(settlement.id)
-                            # import ipdb; ipdb.set_trace()
-                            # init_t = time.time()
-                            # settlement_line_obj.create(
-                            #     {'settlement': settlement.id,
-                            #      'agent_line': [(6, 0,
-                            #                      [agent_lines_company[pos].id])
-                            #                     ],
-                            #      'company_id': company.id})
-                            line_vals.append({'settlement': settlement.id,
-                                              'agent_line': [(6, 0,
-                                                 [agent_lines_company[pos].id])],
-                                              'company_id': company.id})
-                            # print("TIEMPO CREATE: %s", time.time() - init_t)
+                            vals = {'settlement': settlement.id,
+                                    'agent_line': [(6, 0,
+                                                   [agent_lines_company[pos].id
+                                                    ])],
+                                    'company_id': company.id}
+                            line_vals.append(vals)
                             pos += 1
-                # import ipdb; ipdb.set_trace()
-                init_t = time.time()
+                # init_t = time.time()
                 settlement.write({'lines': [(0, 0, x) for x in line_vals]})
-                print("TIEMPO CREATE: %s", time.time() - init_t)
-        import ipdb; ipdb.set_trace()
+                # print("TIEMPO CREATE: %s", time.time() - init_t)
         # go to results
         if len(settlement_ids):
             return {
