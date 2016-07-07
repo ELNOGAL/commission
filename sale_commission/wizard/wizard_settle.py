@@ -51,10 +51,11 @@ class SaleCommissionMakeSettle(models.TransientModel):
 
     @api.multi
     def action_settle(self):
+        # import ipdb; ipdb.set_trace()
         self.ensure_one()
         agent_line_obj = self.env['account.invoice.line.agent']
         settlement_obj = self.env['sale.commission.settlement']
-        settlement_line_obj = self.env['sale.commission.settlement.line']
+        # settlement_line_obj = self.env['sale.commission.settlement.line']
         settlement_ids = []
         if not self.agents:
             self.agents = self.env['res.partner'].search(
@@ -67,9 +68,9 @@ class SaleCommissionMakeSettle(models.TransientModel):
                 [('invoice_date', '<', date_to_agent),
                  ('agent', '=', agent.id),
                  ('settled', '=', False)], order='invoice_date')
-            grouped_lines = {}
             for company in agent_lines.mapped('invoice_line.company_id'):
                 settlement = False
+                line_vals = []
                 for agent_lines_company in agent_lines.filtered(
                         lambda r: r.invoice_line.company_id == company):
                     if agent_lines_company:
@@ -99,21 +100,25 @@ class SaleCommissionMakeSettle(models.TransientModel):
                                          'date_to': sett_to,
                                          'company_id': company.id})
                                     settlement_ids.append(settlement.id)
-                            key = (company.id, settlement.id)
-                            if key not in grouped_lines:
-                                grouped_lines[key] = []
-                            grouped_lines[key].append(
-                                agent_lines_company[pos].id)
+                            # import ipdb; ipdb.set_trace()
+                            # init_t = time.time()
+                            # settlement_line_obj.create(
+                            #     {'settlement': settlement.id,
+                            #      'agent_line': [(6, 0,
+                            #                      [agent_lines_company[pos].id])
+                            #                     ],
+                            #      'company_id': company.id})
+                            line_vals.append({'settlement': settlement.id,
+                                              'agent_line': [(6, 0,
+                                                 [agent_lines_company[pos].id])],
+                                              'company_id': company.id})
+                            # print("TIEMPO CREATE: %s", time.time() - init_t)
                             pos += 1
-        for key in grouped_lines:
-            vals = {
-                'company_id': key[0],
-                'settlement': key[1],
-                'agent_line': [(6, 0, grouped_lines[key])]
-            }
-            # init_t = time.time()
-            settlement_line_obj.create(vals)
-            # print("ES...: %s", time.time() - init_t)
+                # import ipdb; ipdb.set_trace()
+                init_t = time.time()
+                settlement.write({'lines': [(0, 0, x) for x in line_vals]})
+                print("TIEMPO CREATE: %s", time.time() - init_t)
+        import ipdb; ipdb.set_trace()
         # go to results
         if len(settlement_ids):
             return {
