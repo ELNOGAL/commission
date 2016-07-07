@@ -6,6 +6,7 @@
 from openerp import models, fields, api, exceptions, _
 from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
+import time
 
 
 class SaleCommissionMakeSettle(models.TransientModel):
@@ -66,6 +67,7 @@ class SaleCommissionMakeSettle(models.TransientModel):
                 [('invoice_date', '<', date_to_agent),
                  ('agent', '=', agent.id),
                  ('settled', '=', False)], order='invoice_date')
+            grouped_lines = {}
             for company in agent_lines.mapped('invoice_line.company_id'):
                 settlement = False
                 for agent_lines_company in agent_lines.filtered(
@@ -97,14 +99,21 @@ class SaleCommissionMakeSettle(models.TransientModel):
                                          'date_to': sett_to,
                                          'company_id': company.id})
                                     settlement_ids.append(settlement.id)
-                            settlement_line_obj.create(
-                                {'settlement': settlement.id,
-                                 'agent_line': [(6, 0,
-                                                 [agent_lines_company[pos].id])
-                                                ],
-                                 'company_id': company.id})
+                            key = (company.id, settlement.id)
+                            if key not in grouped_lines:
+                                grouped_lines[key] = []
+                            grouped_lines[key].append(
+                                agent_lines_company[pos].id)
                             pos += 1
-
+        for key in grouped_lines:
+            vals = {
+                'company_id': key[0],
+                'settlement': key[1],
+                'agent_line': [(6, 0, grouped_lines[key])]
+            }
+            # init_t = time.time()
+            settlement_line_obj.create(vals)
+            # print("ES...: %s", time.time() - init_t)
         # go to results
         if len(settlement_ids):
             return {

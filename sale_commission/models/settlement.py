@@ -13,7 +13,7 @@ class Settlement(models.Model):
     def _default_currency(self):
         return self.env.user.company_id.currency_id.id
 
-    total = fields.Float(compute="_compute_total", readonly=True, store=True)
+    total = fields.Float(compute="_compute_total", readonly=True)
     date_from = fields.Date(string="From")
     date_to = fields.Date(string="To")
     agent = fields.Many2one(
@@ -36,7 +36,7 @@ class Settlement(models.Model):
         default=_default_currency)
     company_id = fields.Many2one('res.company', 'Company')
 
-    @api.depends('lines', 'lines.settled_amount')
+    # @api.depends('lines', 'lines.settled_amount')
     def _compute_total(self):
         for record in self:
             record.total = sum(x.settled_amount for x in record.lines)
