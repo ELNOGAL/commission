@@ -17,21 +17,22 @@ class AccountInvoiceLine(models.Model):
         res = super(AccountInvoiceLine, self).product_id_change(
             product, uom_id, qty, name, type, partner_id,
             fposition_id, price_unit, currency_id, company_id)
+        if type in ('out_invoice', 'out_refund'):
+            if partner_id and product:
+                agent_list = []
+                partner = self.env["res.partner"].browse(partner_id)
+                for agent in partner.agents:
+                    # default commission_id for agent
+                    commission_id = agent.commission.id
+                    commission_id_product = self.env["product.product.agent"]\
+                        .get_commission_id_product(product, agent)
+                    if commission_id_product:
+                        commission_id = commission_id_product
+                    if commission_id:
+                        agent_list.append({'agent': agent.id,
+                                           'commission': commission_id
+                                           })
 
-        if partner_id and product:
-            agent_list = []
-            partner = self.env["res.partner"].browse(partner_id)
-            for agent in partner.agents:
-                # default commission_id for agent
-                commission_id = agent.commission.id
-                commission_id_product = self.env["product.product.agent"]\
-                    .get_commission_id_product(product, agent)
-                if commission_id_product:
-                    commission_id = commission_id_product
-                agent_list.append({'agent': agent.id,
-                                   'commission': commission_id
-                                   })
-
-                res['value']['agents'] = [(0, 0, x) for x in agent_list]
+                    res['value']['agents'] = [(0, 0, x) for x in agent_list]
 
         return res
