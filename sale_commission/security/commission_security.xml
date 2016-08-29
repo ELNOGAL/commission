@@ -20,7 +20,7 @@
             <field name="name">Invoice line agent multi-company</field>
             <field name="model_id" ref="model_account_invoice_line_agent"/>
             <field name="global" eval="True"/>
-            <field name="domain_force">['|',('invoice_line.company_id','=',False),('invoice_line.company_id','child_of',[user.company_id.id])]</field>
+            <field name="domain_force">['|',('company_id','=',False),('company_id','child_of',[user.company_id.id])]</field>
         </record>
 
         <record id="sale_commission_settlement_multicompany_rule" model="ir.rule">
