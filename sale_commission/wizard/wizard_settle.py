@@ -15,36 +15,47 @@ class SaleCommissionMakeSettle(models.TransientModel):
     date_to = fields.Date('Up to', required=True, default=fields.Date.today())
     agents = fields.Many2many(comodel_name='res.partner',
                               domain="[('agent', '=', True)]")
+    settlement = fields.Selection(
+        selection=[("defined_in_agent", "Defined in agent"),
+                   ("monthly", "Monthly"),
+                   ("quaterly", "Quarterly"),
+                   ("semi", "Semi-annual"),
+                   ("annual", "Annual")],
+        string="Settlement period", default="defined_in_agent", required=True)
 
     def _get_period_start(self, agent, date_to):
+        settlement = (self.settlement != 'defined_in_agent') and \
+                    self.settlement or agent.settlement
         if isinstance(date_to, basestring):
             date_to = fields.Date.from_string(date_to)
-        if agent.settlement == 'monthly':
+        if settlement == 'monthly':
             return date(month=date_to.month, year=date_to.year, day=1)
-        elif agent.settlement == 'quaterly':
+        elif settlement == 'quaterly':
             # Get first month of the date quarter
             month = ((date_to.month - 1) // 3 + 1) * 3 - 2
             return date(month=month, year=date_to.year, day=1)
-        elif agent.settlement == 'semi':
+        elif settlement == 'semi':
             if date_to.month > 6:
                 return date(month=7, year=date_to.year, day=1)
             else:
                 return date(month=1, year=date_to.year, day=1)
-        elif agent.settlement == 'annual':
+        elif settlement == 'annual':
             return date(month=1, year=date_to.year, day=1)
         else:
             raise exceptions.Warning(_("Settlement period not valid."))
 
     def _get_next_period_date(self, agent, current_date):
+        settlement = (self.settlement != 'defined_in_agent') and \
+                    self.settlement or agent.settlement
         if isinstance(current_date, basestring):
             current_date = fields.Date.from_string(current_date)
-        if agent.settlement == 'monthly':
+        if settlement == 'monthly':
             return current_date + relativedelta(months=1)
-        elif agent.settlement == 'quaterly':
+        elif settlement == 'quaterly':
             return current_date + relativedelta(months=3)
-        elif agent.settlement == 'semi':
+        elif settlement == 'semi':
             return current_date + relativedelta(months=6)
-        elif agent.settlement == 'annual':
+        elif settlement == 'annual':
             return current_date + relativedelta(years=1)
         else:
             raise exceptions.Warning(_("Settlement period not valid."))
